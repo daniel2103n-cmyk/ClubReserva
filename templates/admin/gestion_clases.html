@@ -1,0 +1,250 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}ClubReserva — Gestión de Clases{% endblock %}
+
+{% block extra_head %}
+<style>
+  .hidden-drawer { transform: translateX(100%); opacity: 0; }
+</style>
+<script>
+  const INSTRUCTORES = {{ instructores_json|safe }};
+  const INSTALACIONES = {{ instalaciones_json|safe }};
+
+  function updateCrearForm() {
+      const instSelect = document.getElementById('crear_instructor');
+      const insSelect = document.getElementById('crear_instalacion');
+      const cupoInput = document.getElementById('crear_cupo_maximo');
+      const reqDiv = document.getElementById('crear_instalacion_req');
+      
+      const instructorId = parseInt(instSelect.value);
+      if(!instructorId) return;
+      const inst = INSTRUCTORES.find(i => i.id === instructorId);
+      if(!inst) return;
+
+      cupoInput.value = inst.cupo_max;
+      reqDiv.textContent = inst.tipo_instalacion ? `Requerido: ${inst.tipo_instalacion}` : 'Cualquier instalación';
+      
+      Array.from(insSelect.options).forEach(opt => {
+          if(!opt.value) return;
+          const instalacion = INSTALACIONES.find(i => i.id === parseInt(opt.value));
+          if(!instalacion) return;
+          if(inst.tipo_instalacion && instalacion.tipo !== inst.tipo_instalacion) {
+              opt.disabled = true; opt.style.display = 'none';
+          } else {
+              opt.disabled = false; opt.style.display = 'block';
+          }
+      });
+      const firstValid = Array.from(insSelect.options).find(opt => !opt.disabled && opt.value);
+      if(firstValid) insSelect.value = firstValid.value;
+  }
+
+  function openCrearDrawer() {
+      document.getElementById('crear-drawer').classList.remove('hidden-drawer');
+      updateCrearForm();
+  }
+  function closeCrearDrawer() {
+      document.getElementById('crear-drawer').classList.add('hidden-drawer');
+  }
+
+  function openEditarDrawer(id, nombre, nivel, cupo, descripcion) {
+      document.getElementById('edit_clase_id').value = id;
+      document.getElementById('edit_nombre').value = nombre;
+      document.getElementById('edit_nivel').value = nivel;
+      document.getElementById('edit_cupo_maximo').value = cupo;
+      document.getElementById('edit_descripcion').value = descripcion;
+      document.getElementById('editar-drawer').classList.remove('hidden-drawer');
+  }
+  function closeEditarDrawer() {
+      document.getElementById('editar-drawer').classList.add('hidden-drawer');
+  }
+
+  async function verInscritos(claseId) {
+      document.getElementById('modal-inscritos').classList.remove('hidden');
+      document.getElementById('modal-inscritos-content').innerHTML = `<div class="flex justify-center p-8"><span class="material-symbols-outlined animate-spin text-primary text-3xl">refresh</span></div>`;
+      try {
+          const resp = await fetch(`/admin-panel/clases/${claseId}/inscritos/`);
+          const data = await resp.json();
+          document.getElementById('modal-inscritos-title').textContent = `Inscritos: ${data.clase}`;
+          let html = `<div class="mb-4 flex gap-4 text-sm font-semibold"><span class="bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full">Cupo: ${data.inscritos.length}/${data.cupo_maximo}</span></div><ul class="space-y-2">`;
+          if(data.inscritos.length === 0) html += `<li class="text-tertiary italic text-sm py-4">No hay inscritos.</li>`;
+          else data.inscritos.forEach((i, idx) => {
+              html += `<li class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100"><div class="w-8 h-8 rounded-full bg-primary-container/20 text-primary-container flex items-center justify-center font-bold text-xs">${idx+1}</div><div><p class="text-sm font-bold text-on-surface">${i.nombre}</p><p class="text-xs text-tertiary">${i.email}</p></div></li>`;
+          });
+          html += `</ul>`;
+          document.getElementById('modal-inscritos-content').innerHTML = html;
+      } catch(e) { document.getElementById('modal-inscritos-content').innerHTML = `<p class="text-red-500 text-sm p-4">Error.</p>`; }
+  }
+
+  function cerrarModalInscritos() { document.getElementById('modal-inscritos').classList.add('hidden'); }
+</script>
+{% endblock %}
+
+{% block page_title %}Clases Compartidas{% endblock %}
+
+{% block navbar_right %}
+    <button onclick="openCrearDrawer()" class="bg-primary-container text-white px-5 py-2.5 rounded-xl font-label-md hover:bg-emerald-600 active:scale-95 transition-all shadow-md flex items-center gap-2">
+      <span class="material-symbols-outlined text-sm">add</span> Crear Clase
+    </button>
+    {{ block.super }}
+{% endblock %}
+
+{% block content %}
+    <!-- KPIs -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+        <div class="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center text-emerald-600"><span class="material-symbols-outlined">event_available</span></div>
+        <div><p class="text-xs text-tertiary font-bold uppercase tracking-wider mb-1">Clases Activas</p><p class="text-3xl font-black text-on-surface">{{ total_activas }}</p></div>
+      </div>
+      <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+        <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600"><span class="material-symbols-outlined">group_add</span></div>
+        <div><p class="text-xs text-tertiary font-bold uppercase tracking-wider mb-1">Total Inscritos</p><p class="text-3xl font-black text-on-surface">{{ total_inscritos }}</p></div>
+      </div>
+      <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+        <div class="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center text-amber-600"><span class="material-symbols-outlined">event_seat</span></div>
+        <div><p class="text-xs text-tertiary font-bold uppercase tracking-wider mb-1">Con Cupo</p><p class="text-3xl font-black text-on-surface">{{ con_cupo }}</p></div>
+      </div>
+      <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+        <div class="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center text-red-600"><span class="material-symbols-outlined">front_hand</span></div>
+        <div><p class="text-xs text-tertiary font-bold uppercase tracking-wider mb-1">Llenas</p><p class="text-3xl font-black text-on-surface">{{ clases_llenas }}</p></div>
+      </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="mb-6 flex gap-4 items-center bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+      <span class="material-symbols-outlined text-slate-400">filter_list</span>
+      <form method="GET" action="{% url 'admin_clases' %}" class="flex flex-1 gap-4 items-center">
+        <select name="dia" class="bg-slate-50 border-none rounded-xl text-sm py-2 px-4 focus:ring-primary-container text-slate-600" onchange="this.form.submit()">
+          <option value="">Todos los días</option>
+          {% for valor, display in dias %}
+          <option value="{{ valor }}" {% if dia_filtro == valor|stringformat:"s" %}selected{% endif %}>{{ display }}</option>
+          {% endfor %}
+        </select>
+        <select name="especialidad" class="bg-slate-50 border-none rounded-xl text-sm py-2 px-4 focus:ring-primary-container text-slate-600" onchange="this.form.submit()">
+          <option value="">Todas las especialidades</option>
+          <option value="Tenis" {% if especialidad_filtro == 'Tenis' %}selected{% endif %}>Tenis</option>
+          <option value="Natación" {% if especialidad_filtro == 'Natación' %}selected{% endif %}>Natación</option>
+          <option value="Yoga" {% if especialidad_filtro == 'Yoga' %}selected{% endif %}>Yoga</option>
+          <option value="Pádel" {% if especialidad_filtro == 'Pádel' %}selected{% endif %}>Pádel</option>
+        </select>
+        <select name="estado" class="bg-slate-50 border-none rounded-xl text-sm py-2 px-4 focus:ring-primary-container text-slate-600" onchange="this.form.submit()">
+          <option value="">Todos los estados</option>
+          <option value="activa" {% if estado_filtro == 'activa' %}selected{% endif %}>Activas</option>
+          <option value="inactiva" {% if estado_filtro == 'inactiva' %}selected{% endif %}>Inactivas</option>
+        </select>
+        {% if dia_filtro or especialidad_filtro or estado_filtro %}
+        <a href="{% url 'admin_clases' %}" class="text-sm font-semibold text-tertiary hover:text-primary transition-colors px-2 ml-auto">Limpiar</a>
+        {% endif %}
+      </form>
+    </div>
+
+    <!-- Tabla -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="bg-slate-50/50 border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500 font-bold">
+            <th class="px-6 py-4">Clase / Horario</th>
+            <th class="px-6 py-4">Instructor</th>
+            <th class="px-6 py-4">Instalación</th>
+            <th class="px-6 py-4">Cupo</th>
+            <th class="px-6 py-4 text-center">Estado</th>
+            <th class="px-6 py-4 text-right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          {% for clase in clases %}
+          <tr class="hover:bg-slate-50/50 transition-colors">
+            <td class="px-6 py-4">
+              <div class="flex items-start gap-3">
+                <div class="bg-emerald-100 text-emerald-800 text-[10px] font-black uppercase px-2 py-1 rounded-md mt-1 w-12 text-center">{{ clase.get_dia_semana_display|slice:":3" }}</div>
+                <div><p class="font-label-md text-on-surface">{{ clase.nombre }}</p><p class="text-xs text-tertiary">{{ clase.hora_inicio|time:"H:i" }} - {{ clase.hora_fin|time:"H:i" }}</p></div>
+              </div>
+            </td>
+            <td class="px-6 py-4">
+              <div class="flex items-center gap-3">
+                {% if clase.instructor.foto %}<img src="{{ clase.instructor.foto.url }}" class="w-8 h-8 rounded-full object-cover">
+                {% else %}<div class="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 font-bold text-xs">{{ clase.instructor.usuario.get_full_name|make_list|first|upper }}</div>{% endif %}
+                <div><p class="text-sm font-semibold text-slate-800">{{ clase.instructor.usuario.get_full_name|default:clase.instructor.usuario.username }}</p></div>
+              </div>
+            </td>
+            <td class="px-6 py-4"><p class="text-sm text-slate-700 font-medium">{{ clase.instalacion.nombre }}</p></td>
+            <td class="px-6 py-4">
+                <div class="w-32"><div class="flex justify-between text-xs mb-1 font-semibold"><span class="text-slate-600">{{ clase.inscritos_count }} / {{ clase.cupo_maximo }}</span></div>
+                    <div class="w-full bg-slate-100 rounded-full h-1.5">
+                        {% widthratio clase.inscritos_count clase.cupo_maximo 100 as pct %}
+                        <div class="h-1.5 rounded-full bg-emerald-500" style="width: {{ pct }}%"></div>
+                    </div>
+                </div>
+            </td>
+            <td class="px-6 py-4 text-center">
+              <form method="POST" action="{% url 'admin_clases' %}">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="toggle_activa"><input type="hidden" name="clase_id" value="{{ clase.id }}">
+                <button type="submit" class="px-3 py-1 rounded-full text-xs font-bold transition-colors {% if clase.activa %}bg-emerald-100 text-emerald-700{% else %}bg-slate-100 text-slate-500{% endif %}">{{ clase.activa|yesno:"Activa,Inactiva" }}</button>
+              </form>
+            </td>
+            <td class="px-6 py-4 text-right space-x-1">
+              <button onclick="verInscritos({{ clase.id }})" class="p-2 text-tertiary hover:text-blue-600 rounded-lg"><span class="material-symbols-outlined text-[20px]">group</span></button>
+              <button onclick="openEditarDrawer({{ clase.id }}, '{{ clase.nombre|escapejs }}', '{{ clase.nivel }}', {{ clase.cupo_maximo }}, '{{ clase.descripcion|escapejs }}')" class="p-2 text-tertiary hover:text-primary-container rounded-lg"><span class="material-symbols-outlined text-[20px]">edit</span></button>
+              <form method="POST" action="{% url 'admin_clases' %}" class="inline-block" onsubmit="return confirm('¿Eliminar?');">
+                {% csrf_token %}<input type="hidden" name="action" value="eliminar"><input type="hidden" name="clase_id" value="{{ clase.id }}">
+                <button type="submit" class="p-2 text-tertiary hover:text-red-600 rounded-lg"><span class="material-symbols-outlined text-[20px]">delete</span></button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- DRAWER: CREAR -->
+    <div id="crear-drawer" class="hidden-drawer fixed inset-y-0 right-0 w-[480px] bg-white shadow-2xl z-50 flex flex-col transition-transform duration-300 border-l border-slate-200">
+      <div class="h-20 px-8 flex items-center justify-between border-b border-slate-100 bg-slate-50">
+        <h3 class="font-h3">Nueva Clase Compartida</h3>
+        <button onclick="closeCrearDrawer()" class="p-2 text-slate-500"><span class="material-symbols-outlined">close</span></button>
+      </div>
+      <form method="POST" action="{% url 'admin_clases' %}" class="flex-1 overflow-y-auto p-8 space-y-6">
+        {% csrf_token %}<input type="hidden" name="action" value="crear">
+        <div class="space-y-2"><label class="font-label-md">Instructor *</label><select required id="crear_instructor" name="instructor" class="w-full border rounded-xl p-3" onchange="updateCrearForm()">
+          <option value="">Selecciona...</option>{% for inst in instructores %}<option value="{{ inst.id }}">{{ inst.usuario.get_full_name|default:inst.usuario.username }}</option>{% endfor %}</select></div>
+        <div class="space-y-2"><label class="font-label-md flex justify-between">Instalación * <span id="crear_instalacion_req" class="text-xs text-blue-600 font-bold"></span></label><select required id="crear_instalacion" name="instalacion" class="w-full border rounded-xl p-3">{% for inst in instalaciones %}<option value="{{ inst.id }}">{{ inst.nombre }}</option>{% endfor %}</select></div>
+        <div class="space-y-2"><label class="font-label-md">Nombre *</label><input required name="nombre" class="w-full border rounded-xl p-3" type="text"/></div>
+        <div class="grid grid-cols-2 gap-4">
+            <div class="space-y-2"><label class="font-label-md">Día *</label><select required name="dia_semana" class="w-full border rounded-xl p-3">{% for val, nom in dias %}<option value="{{ val }}">{{ nom }}</option>{% endfor %}</select></div>
+            <div class="space-y-2"><label class="font-label-md">Cupo *</label><input required id="crear_cupo_maximo" name="cupo_maximo" class="w-full border rounded-xl p-3" type="number"/></div>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+            <div class="space-y-2"><label class="font-label-md">Inicio *</label><input required name="hora_inicio" class="w-full border rounded-xl p-3" type="time"/></div>
+            <div class="space-y-2"><label class="font-label-md">Fin *</label><input required name="hora_fin" class="w-full border rounded-xl p-3" type="time"/></div>
+        </div>
+        <div class="space-y-2"><label class="font-label-md">Nivel</label><select name="nivel" class="w-full border rounded-xl p-3">{% for val, nom in niveles %}<option value="{{ val }}">{{ nom }}</option>{% endfor %}</select></div>
+        <button type="submit" class="w-full bg-primary-container text-white py-4 rounded-xl font-bold">Crear Clase</button>
+      </form>
+    </div>
+
+    <!-- DRAWER: EDITAR -->
+    <div id="editar-drawer" class="hidden-drawer fixed inset-y-0 right-0 w-[480px] bg-white shadow-2xl z-50 flex flex-col transition-transform duration-300 border-l border-slate-200">
+      <div class="h-20 px-8 flex items-center justify-between border-b border-slate-100 bg-slate-50">
+        <h3 class="font-h3">Editar Clase</h3>
+        <button onclick="closeEditarDrawer()" class="p-2 text-slate-500"><span class="material-symbols-outlined">close</span></button>
+      </div>
+      <form method="POST" action="{% url 'admin_clases' %}" class="p-8 space-y-6">
+        {% csrf_token %}<input type="hidden" name="action" value="editar"><input type="hidden" name="clase_id" id="edit_clase_id">
+        <div class="space-y-2"><label class="font-label-md">Nombre *</label><input required id="edit_nombre" name="nombre" class="w-full border rounded-xl p-3" type="text"/></div>
+        <div class="grid grid-cols-2 gap-4">
+            <div class="space-y-2"><label class="font-label-md">Nivel</label><select id="edit_nivel" name="nivel" class="w-full border rounded-xl p-3">{% for val, nom in niveles %}<option value="{{ val }}">{{ nom }}</option>{% endfor %}</select></div>
+            <div class="space-y-2"><label class="font-label-md">Cupo *</label><input required id="edit_cupo_maximo" name="cupo_maximo" class="w-full border rounded-xl p-3" type="number"/></div>
+        </div>
+        <div class="space-y-2"><label class="font-label-md">Descripción</label><textarea id="edit_descripcion" name="descripcion" rows="3" class="w-full border rounded-xl p-3"></textarea></div>
+        <button type="submit" class="w-full bg-primary-container text-white py-4 rounded-xl font-bold">Guardar Cambios</button>
+      </form>
+    </div>
+
+    <!-- MODAL INSCRITOS -->
+    <div id="modal-inscritos" class="hidden fixed inset-0 bg-slate-950/50 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col max-h-[80vh]">
+            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50"><h3 id="modal-inscritos-title" class="font-bold">Inscritos</h3><button onclick="cerrarModalInscritos()"><span class="material-symbols-outlined">close</span></button></div>
+            <div id="modal-inscritos-content" class="p-6 overflow-y-auto"></div>
+        </div>
+    </div>
+{% endblock %}

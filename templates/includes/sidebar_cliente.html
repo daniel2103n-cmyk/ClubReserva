@@ -1,0 +1,21 @@
+<!-- Dashboard -->
+<a class="flex items-center gap-3 px-4 py-3 text-slate-400 font-medium hover:bg-slate-900 hover:text-white transition-all duration-200 rounded-lg group {% if request.resolver_match.url_name == 'cliente_dashboard' %}active-link{% endif %}" href="{% url 'cliente_dashboard' %}">
+  <span class="material-symbols-outlined {% if request.resolver_match.url_name == 'cliente_dashboard' %}text-emerald-400{% else %}group-hover:text-emerald-400{% endif %}">home</span>
+  <span class="text-label-md font-label-md">Mi Dashboard</span>
+</a>
+
+<div class="pt-4 pb-1 px-4">
+  <p class="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Servicios</p>
+</div>
+
+<!-- Reservar -->
+<a class="flex items-center gap-3 px-4 py-3 text-slate-400 font-medium hover:bg-slate-900 hover:text-white transition-all duration-200 rounded-lg group {% if request.resolver_match.url_name == 'hacer_reserva' %}active-link{% endif %}" href="{% url 'hacer_reserva' %}">
+  <span class="material-symbols-outlined {% if request.resolver_match.url_name == 'hacer_reserva' %}text-emerald-400{% else %}group-hover:text-emerald-400{% endif %}">event_available</span>
+  <span class="text-label-md font-label-md">Nueva Reserva</span>
+</a>
+
+<!-- Catálogo de Clases -->
+<a class="flex items-center gap-3 px-4 py-3 text-slate-400 font-medium hover:bg-slate-900 hover:text-white transition-all duration-200 rounded-lg group {% if request.resolver_match.url_name == 'catalogo_clases' %}active-link{% endif %}" href="{% url 'catalogo_clases' %}">
+  <span class="material-symbols-outlined {% if request.resolver_match.url_name == 'catalogo_clases' %}text-emerald-400{% else %}group-hover:text-emerald-400{% endif %}">auto_awesome_motion</span>
+  <span class="text-label-md font-label-md">Clases Compartidas</span>
+</a>

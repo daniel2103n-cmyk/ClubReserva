@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es-419"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ClubReserva - Registro</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-error": "#ffffff",
+                        "on-secondary-fixed": "#141b2b",
+                        "error": "#ba1a1a",
+                        "on-tertiary-container": "#2f3948",
+                        "on-background": "#191c1d",
+                        "inverse-surface": "#2e3132",
+                        "secondary-fixed-dim": "#c0c6db",
+                        "secondary": "#575e70",
+                        "tertiary-container": "#99a3b5",
+                        "surface-variant": "#e1e3e4",
+                        "surface-container": "#edeeef",
+                        "primary": "#006c49",
+                        "on-secondary-fixed-variant": "#404758",
+                        "on-error-container": "#93000a",
+                        "on-primary-fixed": "#002113",
+                        "on-tertiary": "#ffffff",
+                        "primary-container": "#10b981",
+                        "primary-fixed-dim": "#4edea3",
+                        "surface": "#f8f9fa",
+                        "error-container": "#ffdad6",
+                        "secondary-container": "#d9dff5",
+                        "tertiary-fixed-dim": "#bdc7d9",
+                        "on-tertiary-fixed": "#121c2a",
+                        "on-tertiary-fixed-variant": "#3d4756",
+                        "on-primary-fixed-variant": "#005236",
+                        "outline": "#6c7a71",
+                        "on-secondary-container": "#5c6274",
+                        "inverse-on-surface": "#f0f1f2",
+                        "tertiary": "#555f6f",
+                        "surface-dim": "#d9dadb",
+                        "tertiary-fixed": "#d9e3f6",
+                        "surface-container-high": "#e7e8e9",
+                        "secondary-fixed": "#dce2f7",
+                        "on-surface": "#191c1d",
+                        "on-primary-container": "#00422b",
+                        "on-primary": "#ffffff",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container-low": "#f3f4f5",
+                        "surface-bright": "#f8f9fa",
+                        "on-secondary": "#ffffff",
+                        "background": "#f8f9fa",
+                        "inverse-primary": "#4edea3",
+                        "surface-tint": "#006c49",
+                        "surface-container-highest": "#e1e3e4",
+                        "primary-fixed": "#6ffbbe",
+                        "on-surface-variant": "#3c4a42",
+                        "outline-variant": "#bbcabf"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "2xl": "1rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "base": "8px",
+                        "gutter": "24px",
+                        "sidebar_width": "280px",
+                        "card_gap": "24px",
+                        "container_padding": "32px"
+                    },
+                    "fontFamily": {
+                        "display": ["Inter"],
+                        "h3": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "h2": ["Inter"],
+                        "h1": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "label-md": ["Inter"],
+                        "body-sm": ["Inter"]
+                    },
+                    "fontSize": {
+                        "display": ["36px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "h3": ["20px", {"lineHeight": "1.3", "letterSpacing": "0", "fontWeight": "600"}],
+                        "label-sm": ["12px", {"lineHeight": "1", "letterSpacing": "0.02em", "fontWeight": "600"}],
+                        "h2": ["24px", {"lineHeight": "1.3", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "h1": ["30px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-lg": ["18px", {"lineHeight": "1.5", "letterSpacing": "0", "fontWeight": "400"}],
+                        "body-md": ["16px", {"lineHeight": "1.5", "letterSpacing": "0", "fontWeight": "400"}],
+                        "label-md": ["14px", {"lineHeight": "1", "letterSpacing": "0.01em", "fontWeight": "600"}],
+                        "body-sm": ["14px", {"lineHeight": "1.5", "letterSpacing": "0", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+    </style>
+</head>
+<body class="font-body-md text-on-surface bg-surface min-h-screen relative flex items-center justify-center overflow-x-hidden">
+<!-- Background Aesthetic Elements -->
+<div class="fixed inset-0 z-0 pointer-events-none">
+<div class="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-primary/10 rounded-full blur-[120px]"></div>
+<div class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-primary-container/20 rounded-full blur-[100px]"></div>
+<div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1595435064212-362637873601?q=80&amp;w=2000&amp;auto=format&amp;fit=crop')] bg-cover bg-center opacity-5 mix-blend-overlay" data-alt="professional luxury tennis court aerial view with clean white lines and lush green surroundings in soft morning light"></div>
+</div>
+<!-- Registration Container -->
+<main class="relative z-10 w-full max-w-lg px-container_padding py-gutter">
+<div class="glass-card rounded-2xl shadow-2xl p-gutter md:p-10 flex flex-col items-center">
+<!-- Logo Section -->
+<div class="flex flex-col items-center mb-8">
+<div class="w-16 h-16 bg-slate-950 rounded-xl flex items-center justify-center mb-4 shadow-lg">
+<span class="material-symbols-outlined text-primary-fixed-dim text-4xl" data-icon="sports_tennis">sports_tennis</span>
+</div>
+<h1 class="font-display text-h1 text-slate-950 tracking-tighter">ClubReserva</h1>
+<p class="font-label-md text-on-surface-variant mt-1">Elite Management Suite</p>
+</div>
+<!-- Header Text -->
+<div class="w-full mb-8">
+<h2 class="font-h2 text-h2 text-slate-900">Create Account</h2>
+<p class="font-body-sm text-on-surface-variant">Únete a la comunidad de gestión deportiva más exclusiva.</p>
+</div>
+<!-- Registration Form -->
+<form class="w-full space-y-5" method="POST" action="{% url 'registro' %}">
+{% csrf_token %}
+{% if error %}
+<div class="w-full bg-error-container text-on-error-container rounded-2xl px-4 py-3 text-body-sm font-semibold">
+  Revisa los datos ingresados.
+</div>
+{% endif %}
+<!-- Full Name Field -->
+<div class="space-y-1.5">
+<label class="font-label-md text-slate-700 ml-1">Nombre Completo</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" data-icon="person">person</span>
+<input class="w-full pl-12 pr-4 py-3 bg-white/50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-container focus:border-primary-container outline-none transition-all font-body-sm" name="nombre" placeholder="Ej. Juan Pérez" type="text" required/>
+</div>
+</div>
+<!-- Email Field -->
+<div class="space-y-1.5">
+<label class="font-label-md text-slate-700 ml-1">Correo Electrónico</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" data-icon="mail">mail</span>
+<input class="w-full pl-12 pr-4 py-3 bg-white/50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-container focus:border-primary-container outline-none transition-all font-body-sm" name="email" placeholder="nombre@empresa.com" type="email" required/>
+</div>
+</div>
+<!-- Password Row -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<div class="space-y-1.5">
+<label class="font-label-md text-slate-700 ml-1">Contraseña</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" data-icon="lock">lock</span>
+<input class="w-full pl-12 pr-4 py-3 bg-white/50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-container focus:border-primary-container outline-none transition-all font-body-sm" name="password" placeholder="••••••••" type="password" required/>
+</div>
+</div>
+<div class="space-y-1.5">
+<label class="font-label-md text-slate-700 ml-1">Confirmar</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" data-icon="lock_clock">lock_clock</span>
+<input class="w-full pl-12 pr-4 py-3 bg-white/50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-container focus:border-primary-container outline-none transition-all font-body-sm" name="confirm" placeholder="••••••••" type="password" required/>
+</div>
+</div>
+</div>
+<!-- Terms & Conditions -->
+<div class="flex items-start gap-3 py-2">
+<div class="flex items-center h-5">
+<input class="w-5 h-5 rounded border-slate-300 text-primary-container focus:ring-primary-container cursor-pointer" id="terms" type="checkbox"/>
+</div>
+<label class="font-body-sm text-on-surface-variant cursor-pointer select-none" for="terms">
+                        Acepto los <span class="text-primary font-semibold hover:underline">Términos y Condiciones</span> y la <span class="text-primary font-semibold hover:underline">Política de Privacidad</span>.
+                    </label>
+</div>
+<!-- Action Button -->
+<button class="w-full bg-primary-container text-on-primary-container font-h3 py-4 rounded-xl shadow-lg shadow-primary-container/20 hover:bg-primary-container/90 active:scale-[0.98] transition-all flex items-center justify-center gap-2" type="submit">
+                    Registrarse
+                    <span class="material-symbols-outlined" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</form>
+<!-- Login Redirect -->
+<div class="mt-8 text-center">
+<p class="font-body-sm text-on-surface-variant">
+                    ¿Ya tienes cuenta? 
+                    <a class="text-primary font-bold hover:underline ml-1" href="{% url 'login' %}">Inicia sesión</a>
+</p>
+</div>
+</div>
+<!-- Footer Help -->
+<div class="mt-8 flex justify-center items-center gap-6 opacity-60">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-sm" data-icon="help">help</span>
+<span class="font-label-sm">Ayuda</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-sm" data-icon="language">language</span>
+<span class="font-label-sm">Español</span>
+</div>
+</div>
+</main>
+<!-- Visual Accent: Top Right Member Card Peek -->
+<div class="hidden lg:block fixed -top-12 -right-12 w-64 h-80 bg-slate-900 rounded-3xl rotate-12 shadow-2xl overflow-hidden opacity-90 border border-slate-800">
+<div class="p-6">
+<div class="flex justify-between items-start mb-12">
+<span class="material-symbols-outlined text-primary-fixed-dim" data-icon="diamond">diamond</span>
+<span class="font-label-sm text-slate-500">PLATINUM</span>
+</div>
+<div class="space-y-2">
+<div class="h-2 w-32 bg-slate-800 rounded"></div>
+<div class="h-2 w-24 bg-slate-800 rounded opacity-50"></div>
+</div>
+</div>
+<div class="absolute bottom-0 right-0 p-4">
+<div class="w-12 h-12 rounded-full border-2 border-primary-container/30 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary-container text-xl" data-icon="contactless">contactless</span>
+</div>
+</div>
+</div>
+</body></html>

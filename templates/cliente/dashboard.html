@@ -1,0 +1,131 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}ClubReserva — Dashboard{% endblock %}
+
+{% block page_title %}Mi Portal de Socio{% endblock %}
+
+{% block content %}
+    <!-- Welcome Banner -->
+    <section class="mb-8">
+      <h1 class="font-display text-display text-on-surface">¡Hola, {{ usuario.first_name|default:usuario.username }}!</h1>
+      <p class="font-body-md text-tertiary mt-2">Bienvenido a tu portal de socio. Tienes {{ proximas|length }} reservas próximas.</p>
+    </section>
+
+    <!-- Featured Next Reservation -->
+    {% if proxima %}
+    <section class="mb-8">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden flex flex-col md:flex-row">
+        <div class="md:w-1/3 relative min-h-[240px]">
+          <img alt="Reserva" class="absolute inset-0 w-full h-full object-cover" src="https://images.unsplash.com/photo-1595435934249-5df7ed86e1c0?auto=format&fit=crop&q=80&w=800">
+          <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+          <div class="absolute bottom-6 left-6">
+            <span class="bg-primary-container text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full">Próxima Reserva</span>
+          </div>
+        </div>
+        <div class="flex-1 p-8 flex flex-col justify-between">
+          <div>
+            <div class="flex justify-between items-start mb-4">
+              <div>
+                <h2 class="font-h1 text-h1 text-on-surface mb-1">Reserva en {{ proxima.instalacion.nombre }}</h2>
+                <p class="text-tertiary font-body-md flex items-center gap-2">
+                  <span class="material-symbols-outlined text-lg">location_on</span>
+                  {{ proxima.instalacion.tipo }} • ClubReserva
+                </p>
+              </div>
+              <div class="text-right">
+                <span class="block font-display text-primary text-3xl">{{ proxima.fecha|date:"d M" }}</span>
+                <span class="text-xs font-bold text-tertiary/60 uppercase tracking-tighter">{{ proxima.hora_inicio|time:"h:i A" }}</span>
+              </div>
+            </div>
+            <div class="flex gap-6 mt-6">
+              {% if proxima.instructor %}
+              <div class="flex flex-col">
+                <span class="text-[10px] font-bold text-tertiary uppercase">Instructor</span>
+                <span class="font-h3 text-h3 text-on-surface mt-1">{{ proxima.instructor.usuario.get_full_name|default:proxima.instructor.usuario.username }}</span>
+              </div>
+              {% endif %}
+              <div class="flex flex-col border-l border-slate-200 pl-6">
+                <span class="text-[10px] font-bold text-tertiary uppercase">Estado</span>
+                <span class="font-h3 text-h3 text-emerald-600 mt-1 capitalize">{{ proxima.estado }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    {% else %}
+    <div class="bg-slate-50 border border-slate-200 rounded-2xl p-8 mb-8 flex flex-col items-center justify-center text-center">
+        <span class="material-symbols-outlined text-slate-300 text-5xl mb-3">event_busy</span>
+        <h3 class="text-slate-800 font-bold text-lg mb-1">Aún no tienes reservas</h3>
+        <p class="text-slate-500 text-sm mb-4">Empieza a disfrutar de nuestras instalaciones agendando tu primera reserva.</p>
+        <a href="{% url 'hacer_reserva' %}" class="bg-primary-container text-white px-6 py-3 rounded-xl font-label-md hover:brightness-110 active:scale-95 transition-all shadow-md">Hacer reserva</a>
+    </div>
+    {% endif %}
+
+    <!-- Mis Clases Compartidas -->
+    {% if mis_clases %}
+    <section class="bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-100 rounded-2xl p-6 shadow-sm mb-8">
+        <h3 class="font-h2 text-emerald-900 mb-6 flex items-center gap-2">
+            <span class="material-symbols-outlined text-emerald-600">group</span> Mis Clases Compartidas
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {% for inscripcion in mis_clases %}
+            <div class="bg-white rounded-xl p-5 border border-emerald-100 shadow-sm flex flex-col relative overflow-hidden">
+                <div class="absolute top-0 right-0 bg-emerald-500 text-white text-[10px] font-black uppercase px-3 py-1 rounded-bl-lg">{{ inscripcion.clase.get_dia_semana_display }}</div>
+                <h4 class="font-bold text-slate-800 text-lg mb-1 pr-16">{{ inscripcion.clase.nombre }}</h4>
+                <div class="flex items-center gap-2 text-xs text-slate-500 font-semibold mb-4">
+                    <span class="material-symbols-outlined text-[16px] text-emerald-500">schedule</span>
+                    {{ inscripcion.clase.hora_inicio|time:"H:i" }} - {{ inscripcion.clase.hora_fin|time:"H:i" }}
+                </div>
+                <div class="mt-auto pt-3 border-t border-slate-100 flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-semibold text-slate-700">{{ inscripcion.clase.instructor.usuario.get_full_name|default:inscripcion.clase.instructor.usuario.username }}</span>
+                    </div>
+                    <span class="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded font-bold">{{ inscripcion.clase.instalacion.nombre }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- Lists -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <section class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
+            <h3 class="font-h2 text-on-surface mb-6 flex items-center gap-2"><span class="material-symbols-outlined text-primary">event_upcoming</span> Mis próximas reservas</h3>
+            <div class="flex flex-col gap-4">
+                {% for reserva in proximas %}
+                <div class="flex items-center justify-between p-4 rounded-xl border border-slate-100 hover:bg-emerald-50/30 transition-all">
+                    <div class="flex items-center gap-4">
+                        <div class="bg-emerald-100 text-emerald-700 w-12 h-12 rounded-lg flex flex-col items-center justify-center">
+                            <span class="text-[10px] font-bold uppercase leading-none">{{ reserva.fecha|date:"M" }}</span>
+                            <span class="text-lg font-black leading-tight">{{ reserva.fecha|date:"d" }}</span>
+                        </div>
+                        <div><h4 class="font-semibold text-on-surface">{{ reserva.instalacion.nombre }}</h4><p class="text-xs text-tertiary">{{ reserva.hora_inicio|time:"h:i A" }}</p></div>
+                    </div>
+                    {% if reserva.instructor %}<span class="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded-md">Con Instructor</span>{% endif %}
+                </div>
+                {% empty %}<p class="text-sm text-tertiary italic text-center py-4">No hay más reservas.</p>{% endfor %}
+            </div>
+        </section>
+
+        <section class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
+            <h3 class="font-h2 text-on-surface mb-6 flex items-center gap-2"><span class="material-symbols-outlined text-slate-400">history</span> Actividad Reciente</h3>
+            <div class="flex flex-col gap-4">
+                {% for reserva in recientes %}
+                <div class="flex items-center justify-between p-4 rounded-xl border border-slate-100 bg-slate-50/50">
+                    <div class="flex items-center gap-4">
+                        <div class="bg-slate-200 text-slate-600 w-12 h-12 rounded-lg flex flex-col items-center justify-center">
+                            <span class="text-[10px] font-bold uppercase leading-none">{{ reserva.fecha|date:"M" }}</span>
+                            <span class="text-lg font-black leading-tight">{{ reserva.fecha|date:"d" }}</span>
+                        </div>
+                        <div><h4 class="font-semibold text-slate-700">{{ reserva.instalacion.nombre }}</h4><p class="text-xs text-slate-500">Completada</p></div>
+                    </div>
+                    <span class="material-symbols-outlined text-emerald-500">check_circle</span>
+                </div>
+                {% empty %}<p class="text-sm text-tertiary italic text-center py-4">No hay historial.</p>{% endfor %}
+            </div>
+        </section>
+    </div>
+{% endblock %}

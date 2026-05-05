@@ -1,0 +1,209 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}ClubReserva — Admin Dashboard{% endblock %}
+
+{% block page_title %}Panel de Administración{% endblock %}
+
+{% block navbar_right %}
+    <!-- Date Picker -->
+    <form method="GET" action="{% url 'admin_dashboard' %}" class="flex items-center gap-2">
+      <span class="material-symbols-outlined text-tertiary text-xl">calendar_today</span>
+      <input type="date" name="fecha" value="{{ fecha_vista|date:'Y-m-d' }}"
+        class="text-sm border border-slate-200 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-primary outline-none bg-white text-on-surface"
+        onchange="this.form.submit()"/>
+      {% if fecha_vista != hoy %}
+      <a href="{% url 'admin_dashboard' %}" class="text-xs text-primary font-semibold hover:underline">Hoy</a>
+      {% endif %}
+    </form>
+    {{ block.super }}
+{% endblock %}
+
+{% block content %}
+    <!-- ── KPI CARDS ───────────────────────── -->
+    <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <!-- Reservas del día -->
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between">
+        <div>
+          <p class="text-label-sm font-label-sm text-tertiary uppercase tracking-wider mb-1">Reservas {{ fecha_vista|date:"d M" }}</p>
+          <h4 class="text-h1 font-h1 text-on-surface">{{ reservas_hoy }}</h4>
+          <p class="text-xs text-primary font-bold mt-2 flex items-center gap-1">
+            <span class="material-symbols-outlined text-xs">book_online</span> en esta fecha
+          </p>
+        </div>
+        <div class="bg-emerald-50 p-4 rounded-xl">
+          <span class="material-symbols-outlined text-emerald-600 text-3xl">book_online</span>
+        </div>
+      </div>
+
+      <!-- Ocupación -->
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between">
+        <div>
+          <p class="text-label-sm font-label-sm text-tertiary uppercase tracking-wider mb-1">Ocupación</p>
+          <h4 class="text-h1 font-h1 text-on-surface">{{ ocupacion }}%</h4>
+          <div class="w-full bg-slate-100 rounded-full h-1.5 mt-3">
+            <div class="bg-primary-container h-1.5 rounded-full transition-all" style="width:{{ ocupacion }}%"></div>
+          </div>
+        </div>
+        <div class="bg-blue-50 p-4 rounded-xl">
+          <span class="material-symbols-outlined text-blue-600 text-3xl">analytics</span>
+        </div>
+      </div>
+
+      <!-- Instructores activos -->
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between">
+        <div>
+          <p class="text-label-sm font-label-sm text-tertiary uppercase tracking-wider mb-1">Instructores activos</p>
+          <h4 class="text-h1 font-h1 text-on-surface">{{ instructores_activos }}</h4>
+          <p class="text-xs text-tertiary font-medium mt-2">{{ instructores_en_sesion }} en sesión ahora</p>
+        </div>
+        <div class="bg-purple-50 p-4 rounded-xl">
+          <span class="material-symbols-outlined text-purple-600 text-3xl">groups</span>
+        </div>
+      </div>
+
+      <!-- Total clientes -->
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between">
+        <div>
+          <p class="text-label-sm font-label-sm text-tertiary uppercase tracking-wider mb-1">Total clientes</p>
+          <h4 class="text-h1 font-h1 text-on-surface">{{ total_clientes }}</h4>
+          <p class="text-xs text-primary font-bold mt-2 flex items-center gap-1">
+            <span class="material-symbols-outlined text-xs">person_add</span> miembros registrados
+          </p>
+        </div>
+        <div class="bg-amber-50 p-4 rounded-xl">
+          <span class="material-symbols-outlined text-amber-600 text-3xl">manage_accounts</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── CALENDARIO + HISTORIAL ──────────── -->
+    <div class="grid grid-cols-12 gap-8 mt-8">
+      <!-- CALENDARIO -->
+      <div class="col-span-12 lg:col-span-9 bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+        <div class="p-6 border-b border-slate-100 flex items-center justify-between bg-white sticky top-0 z-10">
+          <div class="flex items-center gap-4">
+            <h3 class="font-h3 text-h3 text-on-surface">Calendario de Reservas</h3>
+            <span class="text-sm text-tertiary font-medium">{{ fecha_vista|date:"l, d \d\e F \d\e Y" }}</span>
+          </div>
+          <div class="flex items-center gap-4 text-[11px] font-bold">
+            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-sm bg-indigo-600 inline-block"></span>Clase Compartida</span>
+            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-sm bg-emerald-600 inline-block"></span>Reserva Privada</span>
+            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-sm bg-blue-600 inline-block"></span>Completada</span>
+            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-sm bg-amber-500 inline-block"></span>Pendiente</span>
+            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-sm bg-red-500 inline-block"></span>Cancelada</span>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <div class="min-w-[960px]">
+            <div class="grid grid-cols-[180px_repeat(12,1fr)] border-b border-slate-100 bg-slate-50/60">
+              <div class="p-4 text-xs font-bold text-slate-400 border-r border-slate-100">Instalación</div>
+              {% for hora in horas %}
+              <div class="p-3 text-xs font-bold text-slate-400 text-center">{{ hora }}:00</div>
+              {% endfor %}
+            </div>
+
+            {% for row in calendario_rows %}
+            <div class="grid grid-cols-[180px_repeat(12,1fr)] border-b border-slate-100 group hover:bg-slate-50/40 transition-colors">
+              <div class="p-4 border-r border-slate-100 bg-white sticky left-0 z-10 group-hover:bg-slate-50/40">
+                <p class="font-label-md text-label-md text-on-surface leading-tight">{{ row.instalacion.nombre }}</p>
+                <p class="text-[10px] text-tertiary mt-0.5">{{ row.instalacion.tipo }} · {{ row.instalacion.get_estado_display }}</p>
+              </div>
+              {% for slot in row.slots %}
+              <div class="p-1 relative border-r border-slate-50 group-hover:bg-slate-50/20 transition-colors min-h-[60px] flex flex-col gap-1">
+                {% if slot.reserva %}
+                <div class="w-full {{ slot.color }} text-white p-1.5 rounded-lg shadow-sm overflow-hidden cursor-pointer hover:brightness-110 transition-all flex-1"
+                     title="Reserva Privada: {{ slot.reserva.cliente.get_full_name }} — {{ slot.reserva.hora_inicio|time:'H:i' }} a {{ slot.reserva.hora_fin|time:'H:i' }}">
+                  <p class="text-[9px] font-bold leading-tight truncate">{{ slot.reserva.cliente.get_full_name|default:slot.reserva.cliente.username }}</p>
+                  <p class="text-[8px] opacity-80 leading-tight truncate">{{ slot.reserva.hora_inicio|time:"H:i" }}-{{ slot.reserva.hora_fin|time:"H:i" }}</p>
+                </div>
+                {% endif %}
+                {% for clase in slot.clases_compartidas %}
+                <div class="w-full bg-indigo-600 text-white p-1.5 rounded-lg shadow-sm overflow-hidden cursor-pointer hover:brightness-110 transition-all flex-1"
+                     title="Clase Compartida: {{ clase.nombre }} con {{ clase.instructor.usuario.get_full_name|default:clase.instructor.usuario.username }} — {{ clase.hora_inicio|time:'H:i' }} a {{ clase.hora_fin|time:'H:i' }}">
+                  <p class="text-[9px] font-bold leading-tight truncate">⭐ {{ clase.nombre }}</p>
+                  <p class="text-[8px] opacity-80 leading-tight truncate">{{ clase.hora_inicio|time:"H:i" }}-{{ clase.hora_fin|time:"H:i" }}</p>
+                </div>
+                {% endfor %}
+              </div>
+              {% endfor %}
+            </div>
+            {% empty %}
+            <div class="p-8 text-center text-tertiary text-body-sm">
+              No hay instalaciones registradas.
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <!-- ALERTAS Y HISTORIAL -->
+      <div class="col-span-12 lg:col-span-3 space-y-6">
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="font-h3 text-h3 text-on-surface text-red-600 flex items-center gap-2">
+              <span class="material-symbols-outlined">warning</span> Alertas
+            </h3>
+          </div>
+          <div class="flex-1 overflow-y-auto space-y-3 pr-1" style="max-height:240px">
+            {% for alerta in alertas_admin %}
+            <div class="p-3 rounded-xl {% if alerta.tipo == 'llegada_tarde' %}bg-orange-50 border border-orange-100{% else %}bg-red-50 border border-red-100{% endif %}">
+              <div class="flex justify-between items-start mb-1">
+                <span class="font-label-sm text-on-surface truncate pr-2 font-bold">{{ alerta.instructor.usuario.get_full_name|default:alerta.instructor.usuario.username }}</span>
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[9px] font-bold {% if alerta.tipo == 'llegada_tarde' %}bg-orange-200 text-orange-800{% else %}bg-red-200 text-red-800{% endif %}">
+                  {{ alerta.get_tipo_display|upper }}
+                </span>
+              </div>
+              <p class="text-[11px] text-tertiary">{{ alerta.mensaje }}</p>
+              <div class="flex items-center justify-end gap-1 text-[9px] text-slate-400 font-medium mt-2">
+                <span class="material-symbols-outlined text-[11px]">schedule</span>
+                {{ alerta.fecha_hora|date:"d M H:i" }}
+              </div>
+            </div>
+            {% empty %}
+            <div class="text-center text-tertiary text-body-sm py-4">
+              Sin alertas recientes.
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 h-full flex flex-col">
+          <div class="flex items-center justify-between mb-5">
+            <h3 class="font-h3 text-h3 text-on-surface">Historial</h3>
+            <span class="bg-primary-container/10 text-primary-container text-[10px] font-bold px-2 py-1 rounded-full border border-primary-container/20">
+              RESERVAS
+            </span>
+          </div>
+          <div class="flex-1 overflow-y-auto space-y-3 pr-1" style="max-height:480px">
+            {% for item in historial %}
+            <div class="flex flex-col gap-1 p-3 bg-slate-50 rounded-xl border border-slate-100 hover:border-slate-200 transition-colors">
+              <div class="flex items-center justify-between gap-2">
+                <p class="text-[13px] font-bold text-on-surface leading-tight truncate">
+                  {{ item.reserva.cliente.get_full_name|default:item.reserva.cliente.username }}
+                </p>
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border {{ item.badge_cls }} shrink-0">
+                  {{ item.badge_label }}
+                </span>
+              </div>
+              <p class="text-xs text-tertiary truncate">{{ item.reserva.instalacion.nombre }}</p>
+              <div class="flex items-center gap-2 text-[10px] text-slate-400 font-medium mt-0.5">
+                <span class="material-symbols-outlined text-[12px]">calendar_today</span>
+                {{ item.reserva.fecha|date:"d M Y" }}
+                <span class="material-symbols-outlined text-[12px]">schedule</span>
+                {{ item.reserva.hora_inicio|time:"H:i" }}
+              </div>
+            </div>
+            {% empty %}
+            <div class="text-center text-tertiary text-body-sm py-8">
+              No hay reservas registradas aún.
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FAB Nueva Reserva -->
+{% endblock %}

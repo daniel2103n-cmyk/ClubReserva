@@ -1,0 +1,15 @@
+<!-- Dashboard -->
+<a class="flex items-center gap-3 px-4 py-3 text-slate-400 font-medium hover:bg-slate-900 hover:text-white transition-all duration-200 rounded-lg group {% if request.resolver_match.url_name == 'instructor_dashboard' %}active-link{% endif %}" href="{% url 'instructor_dashboard' %}">
+  <span class="material-symbols-outlined {% if request.resolver_match.url_name == 'instructor_dashboard' %}text-emerald-400{% else %}group-hover:text-emerald-400{% endif %}">dashboard</span>
+  <span class="text-label-md font-label-md">Dashboard</span>
+</a>
+
+<div class="pt-4 pb-1 px-4">
+  <p class="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Sesiones</p>
+</div>
+
+<!-- Calendario -->
+<a class="flex items-center gap-3 px-4 py-3 text-slate-400 font-medium hover:bg-slate-900 hover:text-white transition-all duration-200 rounded-lg group {% if request.resolver_match.url_name == 'instructor_calendario' %}active-link{% endif %}" href="{% url 'instructor_calendario' %}">
+  <span class="material-symbols-outlined {% if request.resolver_match.url_name == 'instructor_calendario' %}text-emerald-400{% else %}group-hover:text-emerald-400{% endif %}">calendar_today</span>
+  <span class="text-label-md font-label-md">Mi Calendario</span>
+</a>

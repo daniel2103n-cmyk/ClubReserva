@@ -1,0 +1,218 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}ClubReserva — Gestión de Instalaciones{% endblock %}
+
+{% block extra_head %}
+<style>
+  .hidden-drawer { display: none !important; }
+</style>
+<script>
+  function openCrearDrawer() {
+      document.getElementById('crear-drawer').classList.remove('hidden-drawer');
+  }
+  function closeCrearDrawer() {
+      document.getElementById('crear-drawer').classList.add('hidden-drawer');
+  }
+
+  function openEditarDrawer(id, nombre, tipo, capacidad, descripcion) {
+      document.getElementById('edit_inst_id').value = id;
+      document.getElementById('edit_nombre').value = nombre;
+      document.getElementById('edit_tipo').value = tipo;
+      document.getElementById('edit_capacidad').value = capacidad;
+      document.getElementById('edit_descripcion').value = descripcion;
+      document.getElementById('editar-drawer').classList.remove('hidden-drawer');
+  }
+  function closeEditarDrawer() {
+      document.getElementById('editar-drawer').classList.add('hidden-drawer');
+  }
+</script>
+{% endblock %}
+
+{% block page_title %}Instalaciones Deportivas{% endblock %}
+
+{% block content %}
+    <!-- Header Actions -->
+    <div class="flex justify-between items-end mb-8">
+      <div>
+        <h2 class="font-h1 text-on-surface">Gestión de Instalaciones</h2>
+        <p class="text-tertiary font-body-md mt-1">Supervisa, crea o actualiza las áreas del club.</p>
+      </div>
+      <button onclick="openCrearDrawer()" class="bg-primary-container text-white px-6 py-3 rounded-xl font-label-md flex items-center gap-2 hover:brightness-110 active:scale-95 transition-all shadow-md">
+        <span class="material-symbols-outlined">add</span>
+        Agregar instalación
+      </button>
+    </div>
+
+    <!-- Table -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+      <table class="w-full text-left border-collapse">
+        <thead class="bg-slate-50 border-b border-slate-100">
+          <tr>
+            <th class="px-6 py-4 font-label-sm text-tertiary uppercase tracking-wider">Nombre</th>
+            <th class="px-6 py-4 font-label-sm text-tertiary uppercase tracking-wider">Tipo</th>
+            <th class="px-6 py-4 font-label-sm text-tertiary uppercase tracking-wider">Capacidad</th>
+            <th class="px-6 py-4 font-label-sm text-tertiary uppercase tracking-wider">Precio/Hora</th>
+            <th class="px-6 py-4 font-label-sm text-tertiary uppercase tracking-wider">Estado</th>
+            <th class="px-6 py-4 font-label-sm text-tertiary uppercase tracking-wider text-right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-50">
+          {% for inst in instalaciones %}
+          <tr class="hover:bg-slate-50/50 transition-colors">
+            <td class="px-6 py-4">
+              <p class="font-label-md text-on-surface">{{ inst.nombre }}</p>
+              <p class="text-xs text-tertiary truncate max-w-xs">{{ inst.descripcion }}</p>
+            </td>
+            <td class="px-6 py-4 font-body-sm text-tertiary">{{ inst.tipo }}</td>
+            <td class="px-6 py-4 font-body-sm text-tertiary">{{ inst.capacidad }} Pers.</td>
+            <td class="px-6 py-4 font-body-sm text-tertiary">${{ inst.precio_hora }}</td>
+            <td class="px-6 py-4">
+              {% if inst.estado == 'activa' %}
+              <span class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 font-label-sm border border-emerald-200">Activa</span>
+              {% else %}
+              <span class="px-3 py-1 rounded-full bg-amber-100 text-amber-700 font-label-sm border border-amber-200">Mantenimiento</span>
+              {% endif %}
+            </td>
+            <td class="px-6 py-4 text-right space-x-1">
+              <!-- Toggle Estado -->
+              <form method="POST" action="{% url 'admin_instalaciones' %}" class="inline-block">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="toggle_estado">
+                <input type="hidden" name="inst_id" value="{{ inst.id }}">
+                <button type="submit" class="p-2 text-tertiary hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Cambiar Estado">
+                  <span class="material-symbols-outlined text-[20px]">sync</span>
+                </button>
+              </form>
+
+              <!-- Edit -->
+              <button onclick="openEditarDrawer('{{ inst.id }}', '{{ inst.nombre|escapejs }}', '{{ inst.tipo|escapejs }}', '{{ inst.capacidad }}', '{{ inst.descripcion|escapejs }}')" 
+                      class="p-2 text-tertiary hover:text-primary-container hover:bg-emerald-50 rounded-lg transition-colors" title="Editar">
+                <span class="material-symbols-outlined text-[20px]">edit</span>
+              </button>
+
+              <!-- Delete -->
+              <form method="POST" action="{% url 'admin_instalaciones' %}" class="inline-block" onsubmit="return confirm('¿Seguro que deseas eliminar esta instalación de forma permanente?');">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="eliminar">
+                <input type="hidden" name="inst_id" value="{{ inst.id }}">
+                <button type="submit" class="p-2 text-tertiary hover:text-error hover:bg-red-50 rounded-lg transition-colors" title="Eliminar">
+                  <span class="material-symbols-outlined text-[20px]">delete</span>
+                </button>
+              </form>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6" class="px-6 py-8 text-center text-tertiary text-sm">
+              No hay instalaciones registradas en el sistema.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- DRAWER: CREAR INSTALACIÓN -->
+    <div id="crear-drawer" class="hidden-drawer fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex justify-end">
+      <div class="w-[480px] bg-white h-full shadow-2xl flex flex-col border-l border-slate-200 transform transition-transform">
+        <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+          <div>
+            <h3 class="font-h3 text-on-surface">Nueva Instalación</h3>
+            <p class="text-tertiary font-body-sm mt-0.5">Agrega una nueva área al club</p>
+          </div>
+          <button type="button" onclick="closeCrearDrawer()" class="p-2 hover:bg-slate-200 rounded-full transition-colors text-slate-500">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+        <form method="POST" action="{% url 'admin_instalaciones' %}" class="flex-1 overflow-y-auto flex flex-col">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="crear">
+          <div class="p-8 space-y-6 flex-1">
+            <div class="space-y-2">
+              <label class="font-label-md text-on-surface-variant">Nombre de la Instalación <span class="text-red-500">*</span></label>
+              <input required name="nombre" class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary-container outline-none transition-all font-body-sm" type="text" placeholder="Ej: Cancha de Tenis #3"/>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div class="space-y-2">
+                <label class="font-label-md text-on-surface-variant">Tipo</label>
+                <select name="tipo" class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary-container outline-none font-body-sm">
+                  <option value="Deportiva">Deportiva</option>
+                  <option value="Acuática">Acuática</option>
+                  <option value="Fitness">Fitness</option>
+                  <option value="Relajación">Relajación</option>
+                  <option value="Otro">Otro</option>
+                </select>
+              </div>
+              <div class="space-y-2">
+                <label class="font-label-md text-on-surface-variant">Capacidad Máx.</label>
+                <input required name="capacidad" min="1" class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary-container outline-none transition-all font-body-sm" type="number" placeholder="Ej: 4"/>
+              </div>
+            </div>
+            <div class="space-y-2">
+              <label class="font-label-md text-on-surface-variant">Precio por Hora ($)</label>
+              <input required name="precio_hora" min="0" step="0.01" class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary-container outline-none transition-all font-body-sm" type="number" placeholder="Ej: 30.00"/>
+            </div>
+            <div class="space-y-2">
+              <label class="font-label-md text-on-surface-variant">Descripción</label>
+              <textarea name="descripcion" class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary-container outline-none transition-all font-body-sm resize-none" rows="4" placeholder="Detalles, equipamiento, normas, etc..."></textarea>
+            </div>
+          </div>
+          <div class="p-6 border-t border-slate-100 bg-slate-50 flex gap-4 mt-auto">
+            <button type="button" onclick="closeCrearDrawer()" class="flex-1 border border-slate-300 px-6 py-3 rounded-xl font-label-md hover:bg-slate-200 active:scale-95 transition-all text-on-surface">Cancelar</button>
+            <button type="submit" class="flex-[2] bg-primary-container text-white px-6 py-3 rounded-xl font-label-md hover:brightness-110 active:scale-95 transition-all shadow-md">Crear Instalación</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- DRAWER: EDITAR INSTALACIÓN -->
+    <div id="editar-drawer" class="hidden-drawer fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex justify-end">
+      <div class="w-[480px] bg-white h-full shadow-2xl flex flex-col border-l border-slate-200 transform transition-transform">
+        <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-emerald-50">
+          <div>
+            <h3 class="font-h3 text-emerald-900">Editar Instalación</h3>
+            <p class="text-emerald-700 font-body-sm mt-0.5">Modificar datos existentes</p>
+          </div>
+          <button type="button" onclick="closeEditarDrawer()" class="p-2 hover:bg-emerald-200 rounded-full transition-colors text-emerald-700">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+        <form method="POST" action="{% url 'admin_instalaciones' %}" class="flex-1 overflow-y-auto flex flex-col">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="editar">
+          <input type="hidden" name="inst_id" id="edit_inst_id">
+          <div class="p-8 space-y-6 flex-1">
+            <div class="space-y-2">
+              <label class="font-label-md text-on-surface-variant">Nombre de la Instalación <span class="text-red-500">*</span></label>
+              <input required id="edit_nombre" name="nombre" class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary-container outline-none transition-all font-body-sm" type="text"/>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div class="space-y-2">
+                <label class="font-label-md text-on-surface-variant">Tipo</label>
+                <select id="edit_tipo" name="tipo" class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary-container outline-none font-body-sm">
+                  <option value="Deportiva">Deportiva</option>
+                  <option value="Acuática">Acuática</option>
+                  <option value="Fitness">Fitness</option>
+                  <option value="Relajación">Relajación</option>
+                  <option value="Otro">Otro</option>
+                </select>
+              </div>
+              <div class="space-y-2">
+                <label class="font-label-md text-on-surface-variant">Capacidad Máx.</label>
+                <input required id="edit_capacidad" name="capacidad" min="1" class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary-container outline-none transition-all font-body-sm" type="number"/>
+              </div>
+            </div>
+            <div class="space-y-2">
+              <label class="font-label-md text-on-surface-variant">Descripción</label>
+              <textarea id="edit_descripcion" name="descripcion" class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary-container outline-none transition-all font-body-sm resize-none" rows="4"></textarea>
+            </div>
+          </div>
+          <div class="p-6 border-t border-slate-100 bg-slate-50 flex gap-4 mt-auto">
+            <button type="button" onclick="closeEditarDrawer()" class="flex-1 border border-slate-300 px-6 py-3 rounded-xl font-label-md hover:bg-slate-200 active:scale-95 transition-all text-on-surface">Cancelar</button>
+            <button type="submit" class="flex-[2] bg-primary-container text-white px-6 py-3 rounded-xl font-label-md hover:brightness-110 active:scale-95 transition-all shadow-md">Guardar Cambios</button>
+          </div>
+        </form>
+      </div>
+    </div>
+{% endblock %}

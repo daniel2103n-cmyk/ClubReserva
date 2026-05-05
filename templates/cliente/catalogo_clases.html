@@ -1,0 +1,102 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}ClubReserva — Clases Compartidas{% endblock %}
+
+{% block page_title %}Catálogo de Clases{% endblock %}
+
+{% block extra_head %}
+<style>
+  .hero-banner {
+    background: linear-gradient(to top, #0f172a, rgba(15, 23, 42, 0.6)), url('https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?auto=format&fit=crop&q=80&w=1600');
+    background-size: cover;
+    background-position: top;
+  }
+</style>
+<script>
+  async function procesarInscripcion(claseId, accion, btnEl) {
+      btnEl.disabled = true;
+      btnEl.innerHTML = `<span class="material-symbols-outlined animate-spin text-sm">refresh</span>...`;
+      const formData = new FormData();
+      formData.append('action', accion);
+      formData.append('clase_id', claseId);
+      formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+      try {
+          const resp = await fetch("{% url 'catalogo_clases' %}", { method: 'POST', body: formData });
+          const data = await resp.json();
+          if(data.ok) window.location.reload();
+          else { alert(data.error || 'Error'); window.location.reload(); }
+      } catch(e) { alert('Error'); window.location.reload(); }
+  }
+</script>
+{% endblock %}
+
+{% block content %}
+    <div class="h-64 hero-banner rounded-3xl mb-8 flex flex-col justify-end p-10 relative overflow-hidden">
+      <div class="relative z-10 max-w-3xl">
+          <span class="bg-emerald-500 text-white text-[10px] font-black uppercase px-3 py-1 rounded-full mb-3">Nuevo</span>
+          <h1 class="text-4xl font-black text-white mb-2">Entrena en grupo.</h1>
+          <p class="text-slate-300">Disfruta de un -25% de descuento en clases guiadas por expertos.</p>
+      </div>
+    </div>
+
+    <!-- Filtros -->
+    <form method="GET" action="{% url 'catalogo_clases' %}" class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex gap-4 items-center mb-10">
+        <span class="material-symbols-outlined text-emerald-500 ml-2">filter_alt</span>
+        <select name="especialidad" class="bg-slate-50 border-none rounded-xl text-sm py-3 px-4 focus:ring-primary-container flex-1 cursor-pointer" onchange="this.form.submit()">
+          <option value="">Todas las especialidades</option>
+          <option value="Tenis" {% if especialidad_filtro == 'Tenis' %}selected{% endif %}>🎾 Tenis</option>
+          <option value="Natación" {% if especialidad_filtro == 'Natación' %}selected{% endif %}>🏊‍♂️ Natación</option>
+          <option value="Yoga" {% if especialidad_filtro == 'Yoga' %}selected{% endif %}>🧘‍♀️ Yoga</option>
+          <option value="Pádel" {% if especialidad_filtro == 'Pádel' %}selected{% endif %}>🏸 Pádel</option>
+        </select>
+        <select name="dia" class="bg-slate-50 border-none rounded-xl text-sm py-3 px-4 focus:ring-primary-container flex-1 cursor-pointer" onchange="this.form.submit()">
+          <option value="">Cualquier día</option>
+          {% for valor, display in dias %}
+          <option value="{{ valor }}" {% if dia_filtro == valor|stringformat:"s" %}selected{% endif %}>{{ display }}</option>
+          {% endfor %}
+        </select>
+        <select name="nivel" class="bg-slate-50 border-none rounded-xl text-sm py-3 px-4 focus:ring-primary-container flex-1 cursor-pointer" onchange="this.form.submit()">
+          <option value="">Cualquier nivel</option>
+          {% for valor, display in niveles %}
+          <option value="{{ valor }}" {% if nivel_filtro == valor|stringformat:"s" %}selected{% endif %}>{{ display }}</option>
+          {% endfor %}
+        </select>
+        {% if dia_filtro or especialidad_filtro or nivel_filtro %}
+        <a href="{% url 'catalogo_clases' %}" class="px-4 py-3 bg-red-50 text-red-600 rounded-xl text-sm font-bold">Borrar</a>
+        {% endif %}
+    </form>
+
+    <!-- Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-20">
+      {% for clase in clases %}
+      <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm hover:shadow-lg transition-all relative flex flex-col">
+          {% if clase.id in mis_inscripciones_ids %}
+          <div class="absolute -top-3 -right-3 bg-emerald-500 text-white w-10 h-10 rounded-full flex items-center justify-center border-2 border-white z-10"><span class="material-symbols-outlined">check</span></div>
+          {% endif %}
+          <div class="flex justify-between items-start mb-4">
+              <div class="bg-emerald-100 text-emerald-700 px-3 py-1.5 rounded-lg text-xs font-black uppercase">{{ clase.get_dia_semana_display }}</div>
+              <div class="text-right"><p class="text-2xl font-black text-emerald-600">${{ clase.precio_persona }}</p></div>
+          </div>
+          <h3 class="font-h2 text-xl mb-1">{{ clase.nombre }}</h3>
+          <p class="text-slate-500 text-sm mb-4 line-clamp-2">{{ clase.descripcion }}</p>
+          <div class="bg-slate-50 rounded-2xl p-4 mb-5 space-y-3">
+              <div class="flex items-center gap-3 text-sm font-semibold"><span class="material-symbols-outlined text-emerald-500">schedule</span>{{ clase.hora_inicio|time:"H:i" }} — {{ clase.hora_fin|time:"H:i" }}</div>
+              <div class="flex items-center gap-3 text-sm font-semibold"><span class="material-symbols-outlined text-emerald-500">location_on</span>{{ clase.instalacion.nombre }}</div>
+          </div>
+          <div class="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between gap-4">
+              <div class="w-1/2"><p class="text-xs text-slate-500 font-bold">Cupos: {{ clase.inscritos_count }}/{{ clase.cupo_maximo }}</p></div>
+              <div class="w-1/2">
+                  {% if clase.id in mis_inscripciones_ids %}
+                  <button onclick="procesarInscripcion({{ clase.id }}, 'cancelar', this)" class="w-full bg-slate-100 text-slate-700 py-2.5 rounded-xl text-sm font-bold">Cancelar</button>
+                  {% elif clase.lleno %}
+                  <button disabled class="w-full bg-slate-100 text-slate-400 py-2.5 rounded-xl text-sm font-bold">Agotado</button>
+                  {% else %}
+                  <button onclick="procesarInscripcion({{ clase.id }}, 'inscribir', this)" class="w-full bg-emerald-500 text-white py-2.5 rounded-xl text-sm font-bold">Inscribirme</button>
+                  {% endif %}
+              </div>
+          </div>
+      </div>
+      {% endfor %}
+    </div>
+{% endblock %}

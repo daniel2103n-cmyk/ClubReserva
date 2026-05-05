@@ -1,0 +1,21 @@
+# ─────────────────────────────────────────────
+# Core Django
+# ─────────────────────────────────────────────
+Django==5.2.8
+djangorestframework==3.16.1
+djangorestframework_simplejwt==5.5.1
+django-cors-headers==4.9.0
+django-filter==25.2
+
+# ─────────────────────────────────────────────
+# Producción / Railway
+# ─────────────────────────────────────────────
+gunicorn==23.0.0
+whitenoise==6.11.0
+dj-database-url==3.0.1
+psycopg2-binary==2.9.11
+
+# ─────────────────────────────────────────────
+# Archivos / Imágenes
+# ─────────────────────────────────────────────
+Pillow==11.1.0

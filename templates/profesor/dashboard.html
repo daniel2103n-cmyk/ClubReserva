@@ -1,0 +1,319 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}ClubReserva — Instructor Dashboard{% endblock %}
+
+{% block page_title %}Portal del Instructor{% endblock %}
+
+{% block content %}
+    <!-- Welcome Banner -->
+    <section class="mb-8">
+      <h1 class="font-display text-display text-on-surface">¡Buen día, {{ usuario.first_name|default:usuario.username }}!</h1>
+      <p class="font-body-md text-tertiary mt-2">Tienes {{ sesiones|length }} sesiones programadas para hoy.</p>
+    </section>
+
+    <!-- Featured Next Class Card -->
+    {% if proxima_sesion %}
+    <section class="mb-8">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden flex flex-col md:flex-row">
+        <div class="md:w-1/3 relative min-h-[240px]">
+          <img alt="Clase" class="absolute inset-0 w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDBO3nLPRfX8Lvl2bSrZWO9ZBceuxJWjEg2ALcTaSs3XrdRvKhhSKwEJSu3twDGHmveIghXR6v0ajCF3KeO0mxPNnfvUisDFQMfwZcp9VwzikPhuLLCRFSLzox7m5Q7jQn7G8UFH6ZmDHT5GtSLHduUKIMSqxDjs_XyJ7y7iSIKCSaIhUKNkvcU70VzeT47TDbsaLwszSe8d8yMnxs_M0I4dGgSc3EVCNB559tKW6f5gRQSG8wyA3FZz8WGET9BSJ7N9KMG-n1HWjA">
+          <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+          <div class="absolute bottom-6 left-6">
+            <span class="bg-primary-container text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full">Próxima Clase</span>
+          </div>
+        </div>
+        <div class="flex-1 p-8 flex flex-col justify-between">
+          <div>
+            <div class="flex justify-between items-start mb-4">
+              <div>
+                <h2 class="font-h1 text-h1 text-on-surface mb-1">{{ proxima_sesion.nombre }}</h2>
+                <p class="text-tertiary font-body-md flex items-center gap-2">
+                  <span class="material-symbols-outlined text-lg">location_on</span>
+                  {{ proxima_sesion.instalacion }} • ClubReserva
+                </p>
+              </div>
+              <div class="text-right">
+                <span class="block font-display text-primary text-3xl">{{ proxima_sesion.hora_inicio|time:"h:i A" }}</span>
+                <span class="text-xs font-bold text-tertiary/60 uppercase tracking-tighter">{{ proxima_sesion.hora_inicio|time:"h:i" }} - {{ proxima_sesion.hora_fin|time:"h:i A" }}</span>
+              </div>
+            </div>
+            <div class="flex gap-6 mt-6">
+              <div class="flex flex-col">
+                <span class="text-[10px] font-bold text-tertiary uppercase">Inscritos</span>
+                <span class="font-h3 text-h3 text-on-surface mt-1">{{ proxima_sesion.alumnos }}</span>
+              </div>
+              <div class="flex flex-col border-l border-slate-200 pl-6">
+                <span class="text-[10px] font-bold text-tertiary uppercase">Nivel</span>
+                <span class="font-h3 text-h3 text-on-surface mt-1">{{ proxima_sesion.nivel }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="mt-8">
+            <button onclick="abrirModalReconocimiento('{{ proxima_sesion.tipo|lower }}', {{ proxima_sesion.id }})"
+              class="bg-primary-container text-white font-label-md px-8 py-4 rounded-xl flex items-center gap-3 hover:brightness-110 transition-all active:scale-95 shadow-lg shadow-emerald-500/20">
+              <span class="material-symbols-outlined">play_circle</span>
+              <span>Iniciar sesión de {{ proxima_sesion.tipo|lower }}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+    {% else %}
+    <div class="bg-emerald-50 border border-emerald-100 rounded-2xl p-6 mb-8 flex items-center gap-4">
+        <span class="material-symbols-outlined text-emerald-600 text-3xl">done_all</span>
+        <div>
+            <h3 class="text-emerald-900 font-bold text-lg">No hay más sesiones pendientes</h3>
+            <p class="text-emerald-700 text-sm">Has completado todo tu itinerario para hoy. ¡Buen trabajo!</p>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Today's Classes Table -->
+    <section class="bg-white rounded-2xl shadow-sm border border-slate-100 p-8">
+      <div class="flex justify-between items-center mb-8">
+        <h3 class="font-h2 text-h2 text-on-surface">Itinerario de hoy</h3>
+        <a href="{% url 'instructor_calendario' %}" class="text-primary font-label-md flex items-center gap-1 hover:underline">
+          Ver calendario completo
+          <span class="material-symbols-outlined text-sm">arrow_forward</span>
+        </a>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="border-b border-slate-100 text-xs text-tertiary uppercase font-bold tracking-wider">
+              <th class="pb-4">Hora</th>
+              <th class="pb-4">Instalación</th>
+              <th class="pb-4">Alumnos</th>
+              <th class="pb-4">Estado</th>
+              <th class="pb-4 text-right">Acciones</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-50">
+            {% for sesion in sesiones %}
+            <tr class="group hover:bg-slate-50/50 transition-colors">
+              <td class="py-5">
+                <span class="font-label-md text-on-surface">{{ sesion.hora_inicio|time:"h:i A" }} - {{ sesion.hora_fin|time:"h:i A" }}</span>
+                <p class="text-xs text-tertiary mt-0.5 font-bold">{{ sesion.nombre }}</p>
+              </td>
+              <td class="py-5">
+                <div class="flex items-center gap-2">
+                  <span class="material-symbols-outlined text-tertiary/60 text-lg">
+                      {% if sesion.tipo == 'Grupal' %}groups{% else %}person{% endif %}
+                  </span>
+                  <span class="font-body-sm text-on-surface">{{ sesion.instalacion }}</span>
+                </div>
+              </td>
+              <td class="py-5"><span class="font-body-sm text-on-surface">{{ sesion.alumnos }}</span></td>
+              <td class="py-5">
+                  {% if sesion.estado == 'completada' %}
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-500">Completada</span>
+                  {% elif sesion.estado == 'en_curso' %}
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 animate-pulse">En curso</span>
+                  {% elif sesion.estado == 'cancelada' %}
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-700">Cancelada</span>
+                  {% else %}
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700">Pendiente</span>
+                  {% endif %}
+              </td>
+              <td class="py-5 text-right">
+                  {% if sesion.estado == 'pendiente' %}
+                  <button onclick="abrirModalReconocimiento('{{ sesion.tipo|lower }}', {{ sesion.id }})" class="bg-primary text-white px-4 py-2 rounded-lg text-xs font-bold hover:brightness-110 transition-all flex items-center gap-1">
+                      <span class="material-symbols-outlined text-[14px]">play_circle</span> Iniciar
+                  </button>
+                  {% elif sesion.estado == 'en_curso' %}
+                  <button onclick="finalizarClase('{{ sesion.tipo|lower }}', {{ sesion.id }})" class="bg-red-500 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-red-600 transition-colors flex items-center gap-1">
+                      <span class="material-symbols-outlined text-[14px]">stop_circle</span> Finalizar
+                  </button>
+                  {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Stats -->
+    <section class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+        <div class="p-3 bg-blue-50 w-fit rounded-xl mb-4"><span class="material-symbols-outlined text-blue-600">forum</span></div>
+        <p class="text-tertiary text-xs font-bold uppercase">Total Reseñas</p>
+        <h4 class="font-h1 text-h1 text-on-surface mt-1">{{ instructor.total_resenas }}</h4>
+      </div>
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+        <div class="p-3 bg-emerald-50 w-fit rounded-xl mb-4"><span class="material-symbols-outlined text-emerald-600">schedule</span></div>
+        <p class="text-tertiary text-xs font-bold uppercase">Horas Impartidas</p>
+        <h4 class="font-h1 text-h1 text-on-surface mt-1">{{ horas_mes }}h</h4>
+      </div>
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+        <div class="p-3 bg-amber-50 w-fit rounded-xl mb-4"><span class="material-symbols-outlined text-amber-600">grade</span></div>
+        <p class="text-tertiary text-xs font-bold uppercase">Calificación Promedio</p>
+        <div class="flex items-center gap-2 mt-1">
+          <h4 class="font-h1 text-h1 text-on-surface">{{ instructor.calificacion_promedio }}</h4>
+          <span class="material-symbols-outlined text-amber-400 fill-current">star</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODAL: RECONOCIMIENTO FACIAL -->
+    <div id="modal-facial" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[60] flex items-center justify-center p-4">
+      <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
+        <div class="bg-slate-900 px-6 py-5 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <span class="material-symbols-outlined text-emerald-400">face_recognition</span>
+            <div><h3 class="text-white font-bold text-base">Verificación de Identidad</h3></div>
+          </div>
+          <button onclick="cerrarModal()" class="text-slate-400 hover:text-white"><span class="material-symbols-outlined">close</span></button>
+        </div>
+        <div class="p-6 flex flex-col items-center gap-5">
+          <div id="facial-status-banner" class="w-full rounded-xl px-4 py-3 flex items-center gap-3 bg-amber-50 border border-amber-200">
+            <div id="facial-status-icon" class="w-8 h-8 rounded-full bg-amber-400 flex items-center justify-center"><span class="material-symbols-outlined text-white text-base">hourglass_empty</span></div>
+            <div><p id="facial-status-title" class="font-bold text-sm text-amber-800">Cargando...</p></div>
+          </div>
+          <div class="relative w-64 h-64 rounded-2xl overflow-hidden bg-slate-900 shadow-xl">
+            <video id="facial-video" autoplay muted playsinline class="absolute inset-0 w-full h-full object-cover"></video>
+            <div id="scan-overlay" class="absolute inset-0 flex items-center justify-center border-2 border-emerald-400/50 rounded-2xl"></div>
+            <div id="success-overlay" class="hidden absolute inset-0 bg-emerald-500/20 flex items-center justify-center"><span class="material-symbols-outlined text-white text-6xl">verified_user</span></div>
+          </div>
+          <div class="w-full">
+            <div class="flex justify-between text-xs font-bold mb-1.5"><span class="text-slate-500">Similitud</span><span id="confidence-text">--</span></div>
+            <div class="w-full bg-slate-100 rounded-full h-2"><div id="confidence-bar" class="h-2 rounded-full bg-slate-300 transition-all" style="width:0%"></div></div>
+          </div>
+          <div class="w-full flex gap-3">
+            <button onclick="cerrarModal()" class="flex-1 border py-3 rounded-xl text-sm font-bold">Cancelar</button>
+            <button id="btn-reintentar" onclick="reiniciarEscaneo()" class="hidden flex-1 bg-slate-800 text-white py-3 rounded-xl text-sm font-bold">Reintentar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <img id="foto-instructor-ref" src="" crossorigin="anonymous" class="hidden" alt="Ref">
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+<script>
+  const MODELS_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model';
+  const SIMILARITY_THRESHOLD = 0.50;
+  let stream = null;
+  let tipoSesionActual = 'grupal';
+  let sesionIdActual = null;
+  let animFrameId = null;
+  let descriptorReferencia = null;
+  let escaneando = true;
+  let verificado = false;
+  let intentosFallidos = 0;
+
+  async function abrirModalReconocimiento(tipo, id) {
+    tipoSesionActual = tipo; sesionIdActual = id;
+    intentosFallidos = 0;
+    verificado = false;
+    document.getElementById('modal-facial').classList.remove('hidden');
+    setStatus('loading', 'Cargando modelos...');
+    try {
+      await faceapi.nets.tinyFaceDetector.loadFromUri(MODELS_URL);
+      await faceapi.nets.faceLandmark68TinyNet.loadFromUri(MODELS_URL);
+      await faceapi.nets.faceRecognitionNet.loadFromUri(MODELS_URL);
+      setStatus('scanning', 'Iniciando cámara...');
+      stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      document.getElementById('facial-video').srcObject = stream;
+      const resp = await fetch('{% url "instructor_foto" %}');
+      const data = await resp.json();
+      if (!data.foto_url) throw new Error('No tienes foto registrada');
+      const img = document.getElementById('foto-instructor-ref');
+      img.src = data.foto_url;
+      await new Promise(r => img.onload = r);
+      const det = await faceapi.detectSingleFace(img, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks(true).withFaceDescriptor();
+      if (!det) throw new Error('Error en foto de referencia');
+      descriptorReferencia = det.descriptor;
+      iniciarEscaneo();
+    } catch (err) { setStatus('error', err.message); document.getElementById('btn-reintentar').classList.remove('hidden'); }
+  }
+
+  async function iniciarEscaneo() {
+    escaneando = true;
+    const video = document.getElementById('facial-video');
+    async function tick() {
+      if (!escaneando) return;
+      const det = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks(true).withFaceDescriptor();
+      if (det && descriptorReferencia) {
+        const dist = faceapi.euclideanDistance(det.descriptor, descriptorReferencia);
+        const sim = Math.round((1 - dist) * 100);
+        document.getElementById('confidence-bar').style.width = sim + '%';
+        document.getElementById('confidence-text').textContent = sim + '%';
+        if (dist < SIMILARITY_THRESHOLD) { onVerificado(); return; }
+      }
+      animFrameId = requestAnimationFrame(tick);
+    }
+    tick();
+
+    setTimeout(async () => {
+        if (!verificado && escaneando) {
+            intentosFallidos++;
+            if (intentosFallidos >= 3) {
+                escaneando = false;
+                setStatus('error', 'Fallo de reconocimiento persistente.');
+                document.getElementById('btn-reintentar').classList.add('hidden');
+                const csrf = document.cookie.split(';').find(c => c.trim().startsWith('csrftoken=')).split('=')[1];
+                await fetch('{% url "reportar_fallo_facial" %}', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf },
+                    body: JSON.stringify({ tipo: tipoSesionActual, clase_id: sesionIdActual })
+                });
+                alert('No se pudo verificar tu identidad tras varios intentos. Se ha enviado una notificación al administrador.');
+                cerrarModal();
+            } else {
+                setStatus('scanning', `Reintentando... (${intentosFallidos}/3)`);
+            }
+        }
+    }, 15000);
+  }
+
+  async function onVerificado() {
+    verificado = true;
+    escaneando = false;
+    document.getElementById('success-overlay').classList.remove('hidden');
+    setStatus('success', '¡Verificado!');
+    const csrf = document.cookie.split(';').find(c => c.trim().startsWith('csrftoken=')).split('=')[1];
+    const resp = await fetch('{% url "iniciar_clase" %}', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf },
+        body: JSON.stringify({ tipo: tipoSesionActual, clase_id: sesionIdActual })
+    });
+    const data = await resp.json();
+    if (data.ok) setTimeout(() => window.location.reload(), 1500);
+    else { setStatus('error', data.error); document.getElementById('btn-reintentar').classList.remove('hidden'); }
+  }
+
+  function setStatus(tipo, titulo) {
+      document.getElementById('facial-status-title').textContent = titulo;
+  }
+  function detenerCamara() { if (stream) stream.getTracks().forEach(t => t.stop()); if (animFrameId) cancelAnimationFrame(animFrameId); }
+  function cerrarModal() { escaneando = false; detenerCamara(); document.getElementById('modal-facial').classList.add('hidden'); }
+  function reiniciarEscaneo() { cerrarModal(); abrirModalReconocimiento(tipoSesionActual, sesionIdActual); }
+
+  function startClock() {
+      const clockEl = document.getElementById('real-time-clock');
+      if (clockEl) {
+          setInterval(() => {
+              const now = new Date();
+              clockEl.textContent = now.toLocaleTimeString('es-ES', { hour12: false });
+          }, 1000);
+      }
+  }
+  startClock();
+
+  async function finalizarClase(tipo, id) {
+      if (!confirm('¿Finalizar clase?')) return;
+      const csrf = document.cookie.split(';').find(c => c.trim().startsWith('csrftoken=')).split('=')[1];
+      const resp = await fetch('{% url "finalizar_clase" %}', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf },
+          body: JSON.stringify({ tipo: tipo, clase_id: id })
+      });
+      const data = await resp.json();
+      if (data.ok) window.location.reload();
+      else alert(data.error);
+  }
+</script>
+{% endblock %}

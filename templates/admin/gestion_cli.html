@@ -1,0 +1,203 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}ClubReserva — Gestión de Clientes{% endblock %}
+
+{% block extra_head %}
+<style>
+  .hidden-drawer { display: none !important; }
+</style>
+<script>
+  function openCrearDrawer() {
+      document.getElementById('crear-drawer').classList.remove('hidden-drawer');
+  }
+  function closeCrearDrawer() {
+      document.getElementById('crear-drawer').classList.add('hidden-drawer');
+  }
+
+  function openEditarDrawer(id, nombre, email) {
+      document.getElementById('edit_user_id').value = id;
+      document.getElementById('edit_nombre').value = nombre;
+      document.getElementById('edit_email').value = email;
+      document.getElementById('editar-drawer').classList.remove('hidden-drawer');
+  }
+  function closeEditarDrawer() {
+      document.getElementById('editar-drawer').classList.add('hidden-drawer');
+  }
+</script>
+{% endblock %}
+
+{% block page_title %}Base de Clientes{% endblock %}
+
+{% block content %}
+    <!-- Header Actions -->
+    <div class="flex justify-between items-end mb-8">
+      <div>
+        <h2 class="font-h1 text-on-surface">Directorio de Clientes</h2>
+        <p class="text-tertiary font-body-md mt-1">Total de clientes registrados en la plataforma: {{ total }}</p>
+      </div>
+      <button onclick="openCrearDrawer()" class="bg-primary-container text-white px-6 py-3 rounded-xl font-label-md flex items-center gap-2 hover:brightness-110 active:scale-95 transition-all shadow-md">
+        <span class="material-symbols-outlined">person_add</span>
+        Nuevo cliente
+      </button>
+    </div>
+
+    <!-- Filtros -->
+    <form method="GET" action="{% url 'admin_clientes' %}" class="flex gap-4 items-center bg-white p-4 rounded-2xl shadow-sm border border-slate-100 mb-8">
+        <div class="flex-1 relative">
+            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+            <input name="q" value="{{ buscar }}" type="text" placeholder="Buscar cliente por nombre o correo..." class="w-full bg-slate-50 border-none rounded-xl pl-10 pr-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary-container">
+        </div>
+        <select name="estado" onchange="this.form.submit()" class="bg-slate-50 border-none rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary-container cursor-pointer w-48">
+            <option value="">Todos los estados</option>
+            <option value="activo" {% if estado_filtro == 'activo' %}selected{% endif %}>Activos</option>
+            <option value="inactivo" {% if estado_filtro == 'inactivo' %}selected{% endif %}>Inactivos</option>
+        </select>
+        {% if buscar or estado_filtro %}
+        <a href="{% url 'admin_clientes' %}" class="text-sm font-semibold text-tertiary hover:text-primary transition-colors px-2">Limpiar</a>
+        {% endif %}
+    </form>
+
+    <!-- Table -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+      <table class="w-full text-left border-collapse">
+        <thead class="bg-slate-50 border-b border-slate-100">
+          <tr>
+            <th class="px-6 py-4 font-label-sm text-tertiary uppercase tracking-wider">Cliente</th>
+            <th class="px-6 py-4 font-label-sm text-tertiary uppercase tracking-wider">Fecha Registro</th>
+            <th class="px-6 py-4 font-label-sm text-tertiary uppercase tracking-wider">Estado de Cuenta</th>
+            <th class="px-6 py-4 font-label-sm text-tertiary uppercase tracking-wider text-right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-50">
+          {% for perfil in perfiles %}
+          <tr class="hover:bg-slate-50/50 transition-colors">
+            <td class="px-6 py-4">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-lg">
+                    {{ perfil.usuario.first_name|default:perfil.usuario.username|make_list|first|upper }}
+                </div>
+                <div>
+                    <p class="font-label-md text-on-surface">{{ perfil.usuario.get_full_name|default:perfil.usuario.username }}</p>
+                    <p class="text-xs text-tertiary truncate max-w-[250px]">{{ perfil.usuario.email }}</p>
+                </div>
+              </div>
+            </td>
+            <td class="px-6 py-4 font-body-sm text-tertiary">
+                <div class="flex items-center gap-1.5">
+                    <span class="material-symbols-outlined text-[16px]">calendar_month</span>
+                    {{ perfil.usuario.date_joined|date:"d M Y" }}
+                </div>
+            </td>
+            <td class="px-6 py-4">
+                {% if perfil.usuario.is_active %}
+                <span class="px-3 py-1.5 rounded-full bg-emerald-100 text-emerald-700 font-label-sm border border-emerald-200">Activa</span>
+                {% else %}
+                <span class="px-3 py-1.5 rounded-full bg-slate-100 text-slate-600 font-label-sm border border-slate-200">Inactiva</span>
+                {% endif %}
+            </td>
+            <td class="px-6 py-4 text-right space-x-1">
+              <form method="POST" action="{% url 'admin_clientes' %}" class="inline-block">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="toggle_activo">
+                <input type="hidden" name="user_id" value="{{ perfil.usuario.id }}">
+                <button type="submit" class="p-2 text-tertiary hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors" title="Activar/Desactivar Cuenta">
+                  <span class="material-symbols-outlined text-[20px]">{% if perfil.usuario.is_active %}block{% else %}check_circle{% endif %}</span>
+                </button>
+              </form>
+              <button onclick="openEditarDrawer('{{ perfil.usuario.id }}', '{{ perfil.usuario.get_full_name|default:perfil.usuario.username|escapejs }}', '{{ perfil.usuario.email|escapejs }}')" 
+                      class="p-2 text-tertiary hover:text-primary-container hover:bg-emerald-50 rounded-lg transition-colors" title="Editar Información">
+                <span class="material-symbols-outlined text-[20px]">edit</span>
+              </button>
+              <form method="POST" action="{% url 'admin_clientes' %}" class="inline-block" onsubmit="return confirm('ATENCIÓN: Esto eliminará permanentemente al cliente. ¿Estás seguro?');">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="eliminar">
+                <input type="hidden" name="user_id" value="{{ perfil.usuario.id }}">
+                <button type="submit" class="p-2 text-tertiary hover:text-error hover:bg-red-50 rounded-lg transition-colors" title="Eliminar Cliente">
+                  <span class="material-symbols-outlined text-[20px]">person_remove</span>
+                </button>
+              </form>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="4" class="px-6 py-12 text-center text-tertiary text-sm">
+              No se encontraron clientes.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- DRAWER: CREAR CLIENTE -->
+    <div id="crear-drawer" class="hidden-drawer fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex justify-end">
+      <div class="w-[480px] bg-white h-full shadow-2xl flex flex-col border-l border-slate-200 transform transition-transform">
+        <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+          <div>
+            <h3 class="font-h3 text-on-surface">Registrar Cliente</h3>
+            <p class="text-tertiary font-body-sm mt-0.5">Crear un nuevo perfil de cliente manualmente</p>
+          </div>
+          <button type="button" onclick="closeCrearDrawer()" class="p-2 text-slate-500 hover:bg-slate-200 rounded-full transition-colors">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+        <form method="POST" action="{% url 'admin_clientes' %}" class="flex-1 overflow-y-auto flex flex-col">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="crear">
+          <div class="p-8 space-y-6 flex-1">
+            <div class="p-4 bg-blue-50 border border-blue-100 rounded-xl flex gap-3 text-sm text-blue-800">
+                <span class="material-symbols-outlined text-blue-500">info</span>
+                <p>La contraseña por defecto será <strong>cliente123</strong>.</p>
+            </div>
+            <div class="space-y-2">
+              <label class="font-label-md text-on-surface-variant">Nombre Completo *</label>
+              <input required name="nombre" class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary-container outline-none transition-all font-body-sm" type="text"/>
+            </div>
+            <div class="space-y-2">
+              <label class="font-label-md text-on-surface-variant">Correo Electrónico *</label>
+              <input required name="email" class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary-container outline-none transition-all font-body-sm" type="email"/>
+            </div>
+          </div>
+          <div class="p-6 border-t border-slate-100 bg-slate-50 flex gap-4 mt-auto">
+            <button type="button" onclick="closeCrearDrawer()" class="flex-1 border border-slate-300 px-6 py-3 rounded-xl font-label-md hover:bg-slate-200 text-on-surface">Cancelar</button>
+            <button type="submit" class="flex-[2] bg-primary-container text-white px-6 py-3 rounded-xl font-label-md hover:brightness-110 shadow-md">Crear Cliente</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- DRAWER: EDITAR CLIENTE -->
+    <div id="editar-drawer" class="hidden-drawer fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex justify-end">
+      <div class="w-[480px] bg-white h-full shadow-2xl flex flex-col border-l border-slate-200 transform transition-transform">
+        <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-emerald-50">
+          <div>
+            <h3 class="font-h3 text-emerald-900">Editar Información</h3>
+            <p class="text-emerald-700 font-body-sm mt-0.5">Actualizar datos del perfil de cliente</p>
+          </div>
+          <button type="button" onclick="closeEditarDrawer()" class="p-2 text-emerald-700 hover:bg-emerald-200 rounded-full transition-colors">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+        <form method="POST" action="{% url 'admin_clientes' %}" class="flex-1 overflow-y-auto flex flex-col">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="editar">
+          <input type="hidden" name="user_id" id="edit_user_id">
+          <div class="p-8 space-y-6 flex-1">
+            <div class="space-y-2">
+              <label class="font-label-md text-on-surface-variant">Nombre Completo *</label>
+              <input required id="edit_nombre" name="nombre" class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary-container outline-none transition-all font-body-sm" type="text"/>
+            </div>
+            <div class="space-y-2">
+              <label class="font-label-md text-on-surface-variant">Correo Electrónico *</label>
+              <input required id="edit_email" name="email" class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary-container outline-none transition-all font-body-sm" type="email"/>
+            </div>
+          </div>
+          <div class="p-6 border-t border-slate-100 bg-slate-50 flex gap-4 mt-auto">
+            <button type="button" onclick="closeEditarDrawer()" class="flex-1 border border-slate-300 px-6 py-3 rounded-xl font-label-md hover:bg-slate-200 text-on-surface">Cancelar</button>
+            <button type="submit" class="flex-[2] bg-primary-container text-white px-6 py-3 rounded-xl font-label-md hover:brightness-110 shadow-md">Guardar Cambios</button>
+          </div>
+        </form>
+      </div>
+    </div>
+{% endblock %}

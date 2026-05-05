@@ -1,0 +1,33 @@
+<!-- Dashboard -->
+<a class="flex items-center gap-3 px-4 py-3 text-slate-400 font-medium hover:bg-slate-900 hover:text-white transition-all duration-200 rounded-lg group {% if request.resolver_match.url_name == 'admin_dashboard' %}active-link{% endif %}" href="{% url 'admin_dashboard' %}">
+  <span class="material-symbols-outlined {% if request.resolver_match.url_name == 'admin_dashboard' %}text-emerald-400{% else %}group-hover:text-emerald-400{% endif %}">dashboard</span>
+  <span class="text-label-md font-label-md">Dashboard</span>
+</a>
+
+<div class="pt-4 pb-1 px-4">
+  <p class="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Gestión</p>
+</div>
+
+<!-- Instalaciones -->
+<a class="flex items-center gap-3 px-4 py-3 text-slate-400 font-medium hover:bg-slate-900 hover:text-white transition-all duration-200 rounded-lg group {% if request.resolver_match.url_name == 'admin_instalaciones' %}active-link{% endif %}" href="{% url 'admin_instalaciones' %}">
+  <span class="material-symbols-outlined {% if request.resolver_match.url_name == 'admin_instalaciones' %}text-emerald-400{% else %}group-hover:text-emerald-400{% endif %}">sports_tennis</span>
+  <span class="text-label-md font-label-md">Instalaciones</span>
+</a>
+
+<!-- Instructores -->
+<a class="flex items-center gap-3 px-4 py-3 text-slate-400 font-medium hover:bg-slate-900 hover:text-white transition-all duration-200 rounded-lg group {% if request.resolver_match.url_name == 'admin_instructores' %}active-link{% endif %}" href="{% url 'admin_instructores' %}">
+  <span class="material-symbols-outlined {% if request.resolver_match.url_name == 'admin_instructores' %}text-emerald-400{% else %}group-hover:text-emerald-400{% endif %}">person_celebrate</span>
+  <span class="text-label-md font-label-md">Instructores</span>
+</a>
+
+<!-- Clientes -->
+<a class="flex items-center gap-3 px-4 py-3 text-slate-400 font-medium hover:bg-slate-900 hover:text-white transition-all duration-200 rounded-lg group {% if request.resolver_match.url_name == 'admin_clientes' %}active-link{% endif %}" href="{% url 'admin_clientes' %}">
+  <span class="material-symbols-outlined {% if request.resolver_match.url_name == 'admin_clientes' %}text-emerald-400{% else %}group-hover:text-emerald-400{% endif %}">group</span>
+  <span class="text-label-md font-label-md">Clientes</span>
+</a>
+
+<!-- Clases Compartidas -->
+<a class="flex items-center gap-3 px-4 py-3 text-slate-400 font-medium hover:bg-slate-900 hover:text-white transition-all duration-200 rounded-lg group {% if request.resolver_match.url_name == 'admin_clases' %}active-link{% endif %}" href="{% url 'admin_clases' %}">
+  <span class="material-symbols-outlined {% if request.resolver_match.url_name == 'admin_clases' %}text-emerald-400{% else %}group-hover:text-emerald-400{% endif %}">calendar_month</span>
+  <span class="text-label-md font-label-md">Clases</span>
+</a>
