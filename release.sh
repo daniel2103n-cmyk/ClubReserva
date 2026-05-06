@@ -20,10 +20,17 @@ p = os.environ.get('DJANGO_SUPERUSER_PASSWORD')
 
 if u and p:
     if not User.objects.filter(username=u).exists():
-        User.objects.create_superuser(u, e or 'admin@ejemplo.com', p)
+        user = User.objects.create_superuser(u, e or 'admin@ejemplo.com', p)
         print(f'Superusuario {u} creado exitosamente.')
     else:
         print(f'El superusuario {u} ya existe.')
+        
+    # Asegurarse de que TODOS los superusuarios tengan el PerfilUsuario de admin
+    # (Esto previene el error de 'too many redirects' al iniciar sesión)
+    from reservas.models import PerfilUsuario
+    for su in User.objects.filter(is_superuser=True):
+        PerfilUsuario.objects.get_or_create(usuario=su, defaults={'rol': 'admin'})
+    print('Verificación de perfiles de administrador completada.')
 else:
     print('Faltan variables DJANGO_SUPERUSER_USERNAME o DJANGO_SUPERUSER_PASSWORD, se omite creación.')
 "
