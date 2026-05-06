@@ -2,8 +2,7 @@
 builder = "nixpacks"
 
 [deploy]
-startCommand = "gunicorn core.wsgi:application --bind 0.0.0.0:$PORT"
-releaseCommand = "bash release.sh"
+startCommand = "bash release.sh"
 healthcheckPath = "/"
 healthcheckTimeout = 300
 restartPolicyType = "on_failure"

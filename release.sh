@@ -27,3 +27,7 @@ if u and p:
 else:
     print('Faltan variables DJANGO_SUPERUSER_USERNAME o DJANGO_SUPERUSER_PASSWORD, se omite creación.')
 "
+
+# Iniciar el servidor
+echo "Iniciando Gunicorn..."
+exec gunicorn core.wsgi:application --bind 0.0.0.0:$PORT
