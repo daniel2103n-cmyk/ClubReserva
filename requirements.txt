@@ -16,6 +16,13 @@ dj-database-url==3.0.1
 psycopg2-binary==2.9.11
 
 # ─────────────────────────────────────────────
+# Cloudinary — almacenamiento de imágenes en producción
+# ─────────────────────────────────────────────
+cloudinary==1.44.0
+django-cloudinary-storage==0.3.0
+
+# ─────────────────────────────────────────────
 # Archivos / Imágenes
 # ─────────────────────────────────────────────
 Pillow==11.1.0
+

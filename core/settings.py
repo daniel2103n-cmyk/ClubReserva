@@ -3,6 +3,7 @@ Django settings for core project.
 """
 
 import os
+import cloudinary
 from pathlib import Path
 import dj_database_url
 
@@ -41,6 +42,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'cloudinary',
+    'cloudinary_storage',
     'reservas',
 ]
 
@@ -126,6 +129,19 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+
+# ─────────────────────────────────────────────
+# Cloudinary (se activa en Railway con CLOUDINARY_URL)
+# ─────────────────────────────────────────────
+
+CLOUDINARY_URL = os.environ.get('CLOUDINARY_URL')
+
+if CLOUDINARY_URL:
+    cloudinary.config()  # Lee automáticamente CLOUDINARY_URL del entorno
+    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+else:
+    DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
 
 
 # ─────────────────────────────────────────────

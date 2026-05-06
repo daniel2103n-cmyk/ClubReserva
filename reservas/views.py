@@ -826,7 +826,13 @@ class InstructorFotoView(RolRequeridoMixin, View):
         if not instructor:
             return JsonResponse({'error': 'Perfil de instructor no encontrado'}, status=404)
         if instructor.foto:
-            foto_url = request.build_absolute_uri(instructor.foto.url)
+            raw_url = instructor.foto.url
+            # Cloudinary ya devuelve una URL absoluta (https://res.cloudinary.com/...)
+            # El almacenamiento local devuelve una ruta relativa (/media/instructores/...)
+            if raw_url.startswith('http://') or raw_url.startswith('https://'):
+                foto_url = raw_url
+            else:
+                foto_url = request.build_absolute_uri(raw_url)
         else:
             foto_url = None
         return JsonResponse({'foto_url': foto_url, 'nombre': request.user.get_full_name() or request.user.username})
